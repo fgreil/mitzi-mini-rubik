@@ -1,4 +1,4 @@
-# 2x2x2 Rubik's Cube Solver
+# 2x2 Rubik's Cube Solver
 
 Minimal Python BFS solver for 2x2 Pocket Cubes. Pure Python, no dependencies.
 
@@ -18,6 +18,9 @@ Minimal Python BFS solver for 2x2 Pocket Cubes. Pure Python, no dependencies.
 ### Command-Line
 
 ```bash
+# Generate random scramble
+python pocket_cube_solver.py 10
+
 # Solve a scrambled cube
 python pocket_cube_solver.py '[o,y,y,y],[g,b,g,g],[y,o,w,w],[g,b,b,b],[o,o,w,w],[r,r,r,r]'
 
@@ -34,7 +37,12 @@ python pocket_cube_solver.py
 ### Python API
 
 ```python
-from pocket_cube_solver import parse_cube, solve_cube, apply_moves, format_cube
+from pocket_cube_solver import parse_cube, solve_cube, apply_moves, format_cube, scramble_cube
+
+# Generate a random scramble
+state, moves = scramble_cube(10)
+print(f"Scramble: {' '.join(moves)}")
+print(f"Cube: {format_cube(state)}")
 
 # Solve a cube
 state = parse_cube("[o,y,y,y],[g,b,g,g],[y,o,w,w],[g,b,b,b],[o,o,w,w],[r,r,r,r]")
@@ -55,6 +63,7 @@ print(format_cube(result))
 - `apply_move(state, move)` → Apply single move
 - `apply_moves(state, moves_str)` → Apply sequence of moves
 - `format_cube(state)` → Convert state back to string
+- `scramble_cube(num_moves)` → Generate random scramble, returns (state, moves)
 
 ## Moves
 
