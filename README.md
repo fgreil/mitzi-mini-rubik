@@ -9,7 +9,12 @@ $\frac{8! \times 3^8}{3 \times 2} = 3{ }674{ }160 {\rm combinations}$
 
 
 ## Test data
-The directory `test` gives you a python script which allows to generate test data (scramble the cube), execute moves for a given initial configuration, as well as solve a given string.
+The directory `test` gives you a python script which allows to generate test data (scramble the cube), execute moves for a given initial configuration, as well as solve a given string. Parameters are:
+
+* Single integer as parameter → Scramble mode
+* Cube string only → Solve mode (depth 8)
+* Cube string + integer as parameters → Solve mode (custom depth)
+* Cube string + moves → Apply moves to given string.
 
 ## Version history
 See [changelog.md](changelog.md)
