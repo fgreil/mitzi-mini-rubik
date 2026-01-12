@@ -1,4 +1,4 @@
-# 2x2 Rubik's Cube Solver
+# 2x2x2 Rubik's Cube Solver
 
 Minimal Python BFS solver for 2x2 Pocket Cubes. Pure Python, no dependencies.
 
@@ -24,6 +24,9 @@ python pocket_cube_solver.py '[o,y,y,y],[g,b,g,g],[y,o,w,w],[g,b,b,b],[o,o,w,w],
 # Specify max depth (default is 8)
 python pocket_cube_solver.py '[o,y,y,y],[g,b,g,g],...' 11
 
+# Apply moves to a cube (see result)
+python pocket_cube_solver.py '[w,w,w,w],[o,o,o,o],...' "R U R' F R U R' U' F'"
+
 # Run demo examples
 python pocket_cube_solver.py
 ```
@@ -31,13 +34,18 @@ python pocket_cube_solver.py
 ### Python API
 
 ```python
-from pocket_cube_solver import parse_cube, solve_cube
+from pocket_cube_solver import parse_cube, solve_cube, apply_moves, format_cube
 
+# Solve a cube
 state = parse_cube("[o,y,y,y],[g,b,g,g],[y,o,w,w],[g,b,b,b],[o,o,w,w],[r,r,r,r]")
 solution = solve_cube(state, max_depth=8)
-
 if solution:
-    print(' '.join(solution))  # e.g., "R U' F2 D"
+    print(' '.join(solution))
+
+# Apply moves to a cube
+state = parse_cube("[w,w,w,w],[o,o,o,o],[y,y,y,y],[r,r,r,r],[b,b,b,b],[g,g,g,g]")
+result = apply_moves(state, "R U R' F")
+print(format_cube(result))
 ```
 
 ## API
@@ -45,6 +53,7 @@ if solution:
 - `parse_cube(str)` → Parse cube string to state
 - `solve_cube(state, max_depth=7)` → Returns list of moves or None
 - `apply_move(state, move)` → Apply single move
+- `apply_moves(state, moves_str)` → Apply sequence of moves
 - `format_cube(state)` → Convert state back to string
 
 ## Moves
