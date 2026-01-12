@@ -170,6 +170,21 @@
             font-size: 16px;
         }
         
+        .ascii-input {
+            width: 100%;
+            padding: 8px;
+            font-family: monospace;
+            font-size: 14px;
+            border: 2px solid #333;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+        
+        .ascii-input:focus {
+            outline: none;
+            border-color: #999999;
+        }
+        
         .balance-status {
             margin-top: 10px;
             padding: 10px;
@@ -367,6 +382,8 @@
                     </div>
                 </div>
             </div>
+            <h3 style="margin-top: 15px;">ASCII Configuration:</h3>
+            <input type="text" id="asciiInput" class="ascii-input" placeholder="[w,w,w,w],[o,o,o,o],[y,y,y,y],[r,r,r,r],[b,b,b,b],[g,g,g,g]">
             <h3 style="margin-top: 15px;">Color Count:</h3>
             <div class="stats-grid" id="statsGrid"></div>
             <div class="balance-status" id="balanceStatus"></div>
@@ -382,10 +399,13 @@
 
     <script>
         const colors = ['white', 'yellow', 'orange', 'red', 'blue', 'green'];
+        const colorLetters = {'white': 'w', 'yellow': 'y', 'orange': 'o', 'red': 'r', 'blue': 'b', 'green': 'g'};
+        const letterColors = {'w': 'white', 'y': 'yellow', 'o': 'orange', 'r': 'red', 'b': 'blue', 'g': 'green'};
         const faces = ['Front', 'Right', 'Back', 'Left', 'Up', 'Down'];
         const faceNotation = ['F', 'R', 'B', 'L', 'U', 'D'];
         
         let currentFace = 0;
+        let isUpdatingFromInput = false;
         
         // Initialize cube state - each face has 4 cells
         let cube = {
@@ -397,6 +417,54 @@
             5: [colors[5], colors[5], colors[5], colors[5]]  // Down - green
         };
         
+        function cubeToAscii() {
+            // Convert cube state to ASCII format: [w,w,w,w],[o,o,o,o],[y,y,y,y],[r,r,r,r],[b,b,b,b],[g,g,g,g]
+            const parts = [];
+            for (let face = 0; face < 6; face++) {
+                const faceLetters = cube[face].map(color => colorLetters[color]);
+                parts.push('[' + faceLetters.join(',') + ']');
+            }
+            return parts.join(',');
+        }
+        
+        function asciiToCube(ascii) {
+            // Parse ASCII format and update cube state
+            try {
+                // Remove spaces and validate format
+                ascii = ascii.replace(/\s/g, '');
+                
+                // Match pattern: [x,x,x,x],[x,x,x,x],... (6 times)
+                const facePattern = /\[([wyobrg]),([wyobrg]),([wyobrg]),([wyobrg])\]/g;
+                const matches = [...ascii.matchAll(facePattern)];
+                
+                if (matches.length !== 6) {
+                    return false; // Invalid format
+                }
+                
+                const newCube = {};
+                for (let i = 0; i < 6; i++) {
+                    newCube[i] = [
+                        letterColors[matches[i][1]],
+                        letterColors[matches[i][2]],
+                        letterColors[matches[i][3]],
+                        letterColors[matches[i][4]]
+                    ];
+                }
+                
+                // Update the global cube state
+                cube = newCube;
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+        
+        function updateAsciiInput() {
+            if (!isUpdatingFromInput) {
+                document.getElementById('asciiInput').value = cubeToAscii();
+            }
+        }
+        
         function renderFace() {
             const cells = document.querySelectorAll('.cube-cell');
             cells.forEach((cell, index) => {
@@ -404,6 +472,7 @@
             });
             document.getElementById('faceLabel').textContent = faces[currentFace] + ' Face';
             updateStatistics();
+            updateAsciiInput();
         }
         
         function updateStatistics() {
@@ -526,6 +595,16 @@
             });
         });
         
+        // Add input handler for ASCII configuration
+        document.getElementById('asciiInput').addEventListener('input', (e) => {
+            isUpdatingFromInput = true;
+            const success = asciiToCube(e.target.value);
+            if (success) {
+                renderFace();
+            }
+            isUpdatingFromInput = false;
+        });
+        
         // Add click handlers to cube net faces for navigation
         document.querySelectorAll('.net-face').forEach(netFace => {
             netFace.addEventListener('click', () => {
@@ -631,8 +710,8 @@
             const goalVisited = new Map();
             goalVisited.set(getCubeState(solvedState), []);
             
-            // Use F, R, U moves only (sufficient due to symmetry)
-            const baseMoves = ['F', 'R', 'U'];
+            // Use all 6 faces for complete coverage
+            const baseMoves = ['F', 'R', 'B', 'L', 'U', 'D'];
             const allMoves = [];
             baseMoves.forEach(move => {
                 allMoves.push(move);       // Clockwise
@@ -641,7 +720,7 @@
             });
             
             let iterations = 0;
-            const maxIterations = 100000;
+            const maxIterations = 200000; // Increased for all 6 faces
             
             // Alternating bidirectional search
             while (startQueue.length > 0 && goalQueue.length > 0 && iterations < maxIterations) {
@@ -680,7 +759,7 @@
                         }
                     }
                     
-                    if (current.moves.length >= 7) continue; // Limit depth for start search
+                    if (current.moves.length >= 6) continue; // Limit depth for start search
                 }
                 
                 // Expand from goal
@@ -715,11 +794,11 @@
                         }
                     }
                     
-                    if (current.moves.length >= 7) continue; // Limit depth for goal search
+                    if (current.moves.length >= 6) continue; // Limit depth for goal search
                 }
             }
             
-            return "Solution not found. Please verify the cube configuration is valid.";
+            return "Solution not found within search depth. The cube may require a longer solution or may not be valid.";
         }
         
         function reverseMovesSequence(moves) {
@@ -750,6 +829,22 @@
             // Don't move the same face twice in a row
             if (lastFace === nextFace) {
                 return true;
+            }
+            
+            // Prune opposite face moves in certain order to avoid redundancy
+            // F-B, R-L, U-D are opposite pairs
+            const oppositePairs = [
+                ['F', 'B'],
+                ['R', 'L'],
+                ['U', 'D']
+            ];
+            
+            for (const pair of oppositePairs) {
+                // If last move was the second in a pair and next is the first,
+                // we can skip it (canonical order)
+                if (lastFace === pair[1] && nextFace === pair[0]) {
+                    return true;
+                }
             }
             
             return false;
@@ -915,6 +1010,7 @@
         
         // Initial render
         renderFace();
+        updateAsciiInput();
     </script>
 </body>
 </html>
