@@ -9,9 +9,7 @@ $\frac{8! \times 3^8}{3 \times 2} = 3{ }674{ }160 {\rm combinations}$
 
 
 ## Test data
-ASCII-notation allows testing and represents the 6 faces (Front, Right, Back, Left, Up, Down) with 4 cells each. 
-Try solving `[o,y,y,y],[g,b,g,g],[y,o,w,w],[g,b,b,b],[o,o,w,w],[r,r,r,r]` which looks as follows:
-<img alt="Flipper Zero screenshot"  src="example-cube-net.jpg" width="40%" />
+The directory `test` gives you a python script which allows to generate test data (scramble the cube), execute moves for a given initial configuration, as well as solve a given string.
 
 ## Version history
 See [changelog.md](changelog.md)
