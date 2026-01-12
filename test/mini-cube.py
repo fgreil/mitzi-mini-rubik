@@ -71,6 +71,28 @@ def format_cube(state: State) -> str:
             f"[{','.join(state[16:20])}],[{','.join(state[20:24])}]")
 
 
+def apply_moves(state: State, moves_str: str) -> State:
+    """
+    Apply a sequence of moves to the cube.
+    
+    Args:
+        state: Starting cube state
+        moves_str: Space-separated moves like "R U R' F R U R' U' F'"
+    
+    Returns:
+        Final cube state after all moves applied
+    """
+    moves = moves_str.replace("'", "' ").split()
+    moves = [m.strip() for m in moves if m.strip()]
+    
+    for move in moves:
+        if move not in ALL_MOVES:
+            raise ValueError(f"Invalid move: {move}")
+        state = apply_move(state, move)
+    
+    return state
+
+
 def solve_cube(start_state: State, max_depth: int = 7) -> Optional[List[str]]:
     """
     Solve the cube using BFS (Breadth-First Search).
@@ -133,31 +155,57 @@ def scramble_cube(num_moves: int = 5) -> Tuple[State, List[str]]:
 if __name__ == "__main__":
     import sys
     
-    # Command-line mode: solve provided cube
+    # Command-line mode: solve provided cube OR apply moves
     if len(sys.argv) > 1:
         cube_str = sys.argv[1]
-        max_depth = int(sys.argv[2]) if len(sys.argv) > 2 else 8
         
         try:
             state = parse_cube(cube_str)
-            print(f"Solving: {cube_str}")
-            print(f"Max depth: {max_depth}")
             
-            # Check if already solved
-            if state == SOLVED:
-                print("Already solved!")
-                print("Solution: [] (0 moves)")
-            else:
-                print("Searching...", end='', flush=True)
-                solution = solve_cube(state, max_depth=max_depth)
-                print("\r" + " " * 50 + "\r", end='')  # Clear "Searching..."
+            # Mode 1: Apply moves (if 2nd arg looks like moves)
+            if len(sys.argv) > 2 and any(c in sys.argv[2] for c in "FRBLUD'2"):
+                moves_str = sys.argv[2]
                 
-                if solution:
-                    print(f"Solution: {' '.join(solution)}")
-                    print(f"Moves: {len(solution)}")
+                print(f"Starting: {cube_str}")
+                print(f"Moves:    {moves_str}")
+                print()
+                
+                try:
+                    state = apply_moves(state, moves_str)
+                    print(f"Result:   {format_cube(state)}")
+                    
+                    # Check if solved
+                    if state == SOLVED:
+                        print("\n✓ Cube is SOLVED!")
+                    else:
+                        print("\n✗ Cube is not solved")
+                except ValueError as e:
+                    print(f"Error: {e}")
+                    print(f"Valid moves: F R B L U D (and F' R' B' L' U' D', F2 R2 B2 L2 U2 D2)")
+                    sys.exit(1)
+            
+            # Mode 2: Solve the cube
+            else:
+                max_depth = int(sys.argv[2]) if len(sys.argv) > 2 else 8
+                
+                print(f"Solving: {cube_str}")
+                print(f"Max depth: {max_depth}")
+                
+                # Check if already solved
+                if state == SOLVED:
+                    print("Already solved!")
+                    print("Solution: [] (0 moves)")
                 else:
-                    print(f"No solution found within depth {max_depth}")
-                    print("Try increasing max_depth (e.g., 11 for optimal)")
+                    print("Searching...", end='', flush=True)
+                    solution = solve_cube(state, max_depth=max_depth)
+                    print("\r" + " " * 50 + "\r", end='')  # Clear "Searching..."
+                    
+                    if solution:
+                        print(f"Solution: {' '.join(solution)}")
+                        print(f"Moves: {len(solution)}")
+                    else:
+                        print(f"No solution found within depth {max_depth}")
+                        print("Try increasing max_depth (e.g., 11 for optimal)")
         except ValueError as e:
             print(f"Error: {e}")
             sys.exit(1)
@@ -210,10 +258,14 @@ if __name__ == "__main__":
         print("=" * 60)
         print("\nSolve a cube:")
         print("  python pocket_cube_solver.py '[w,w,w,w],...' [max_depth]")
+        print("\nApply moves to a cube:")
+        print("  python pocket_cube_solver.py '[w,w,w,w],...' \"R U R' F\"")
         print("\nExamples:")
         print("  python pocket_cube_solver.py '[o,y,y,y],[g,b,g,g],...'")
         print("  python pocket_cube_solver.py '[o,y,y,y],[g,b,g,g],...' 11")
+        print("  python pocket_cube_solver.py '[w,w,w,w],...' \"R U R' U' F'\"")
         print("\nNotes:")
         print("  - Default max_depth: 8 (fast)")
         print("  - Use max_depth=11 for optimal solutions (slower)")
+        print("  - Apply mode shows resulting cube state")
         print("\n" + "=" * 60)
